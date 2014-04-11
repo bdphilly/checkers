@@ -24,7 +24,6 @@ class Board
 		raise "position not empty" unless self.empty?(pos)
 
 		self[pos] = piece
-		# @rows[pos] = [pos.first, pos.last]
 	end
 
 	def remove_piece(piece, pos)
@@ -45,8 +44,8 @@ class Board
 		if fill_board
 	 		3.times do |row|
 	 			8.times do |col|
-	 				Piece.new(:red, self, [row, col]) unless (col+row).even?
-	 				Piece.new(:black, self, [5+row, col]) unless (col+row).odd?
+	 				Piece.new(:red, self, [row, col], :soldier) unless (col+row).even?
+	 				Piece.new(:black, self, [5+row, col], :soldier) unless (col+row).odd?
 	 			end
 	 		end
 		end
@@ -56,7 +55,7 @@ class Board
 		new_board = Board.new(false)
 
 		pieces.each do |piece|
-			Piece.new(piece.color, new_board, piece.pos)
+			Piece.new(piece.color, new_board, piece.pos, piece.rank)
 		end
 
 		new_board

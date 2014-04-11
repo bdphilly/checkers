@@ -2,60 +2,46 @@ class Piece
 
 	attr_accessor :board, :color, :pos, :rank
 
-	def initialize(color, board, pos)
+	def initialize(color, board, pos, rank)
 		@color, @board, @pos = color, board, pos
 		@rank = :soldier # as opposed to a king
 		self.board.add_piece(self, pos)
 	end
 
 	def render
-		{ :red => " R ", :black => " B " }
+		if self.rank == :king
+			{ :red => " R ", :black => " B " }
+		else
+			{ :red => " r ", :black => " b " }
+		end
 	end
 
 	def perform_moves(move_sequence)
 		if valid_move_seq?(move_sequence)
-			perform_moves!(move_sequence)
+			self.perform_moves!(move_sequence)
 		else
 			raise	InvalidMoveError
 		end
 	end
 
-
 	def perform_moves!(move_sequence)
-		p "MOVE SEQUENCE: #{move_sequence}"
-		p move_sequence.flatten.compact.count
-		p move_sequence.first
 		if move_sequence.flatten.compact.count < 3
 			unless self.perform_slide(move_sequence.first) || self.perform_jump(move_sequence.first)
 				raise InvalidMoveError
 			end
 		else
 			move_sequence.each do |move_position|
-				# if move_position == [6,3]
-				# 	debugger
-				# end
-				p "SELF.POS"
-				p self.pos	
-				p move_position
-				p "jumping moves:#{self.find_jumping_moves}"
-				# p perform_jump(move_position)
-				# self.perform_jump(move_position)
-				# self.pos = move_position
 				raise InvalidMoveError unless self.perform_jump(move_position) 
 			end
 		end
 	end
 
 	def valid_move_seq?(move_sequence)
-		p "MOVE SEQUENCE: #{move_sequence}"
 		dupped_board = self.board.dup_board
 
 		begin
-			puts "step A"
 			dupped_board[self.pos].perform_moves!(move_sequence)
-		rescue InvalidMoveError => e
-			puts e
-			puts "step B"
+		rescue InvalidMoveError
 			false
 		else
 			true
@@ -63,15 +49,11 @@ class Piece
 	end
 
 	def perform_slide(end_pos)
-		# p "FINDING SLIDE MOVES"
-		# p find_sliding_moves
-		# puts
-		# raise "invalid slide move" unless find_sliding_moves.include?(end_pos)
-
 		if find_sliding_moves.include?(end_pos)
 			self.board.remove_piece(self, self.pos)
 			self.board.add_piece(self, end_pos)
 			self.pos = end_pos
+			self.rank = :king if king_promotion?
 			return true
 		end
 
@@ -93,14 +75,12 @@ class Piece
 	end
 
 	def perform_jump(end_pos)
-		# raise "invalid jump move" unless find_jumping_moves.include?(end_pos)
 		if find_jumping_moves.include?(end_pos)
-			puts 'HELLO'
 			self.board.add_piece(self, end_pos)
 			self.board.remove_piece(self, self.pos)
 			self.board.remove_piece(self, find_jumped_pos(end_pos))
 			self.pos = end_pos
-			# puts self.pos
+			self.rank = :king if king_promotion?
 			return true
 		end
 
@@ -133,6 +113,14 @@ class Piece
 						end
 				end
 			end
+		end
+	end
+
+	def king_promotion?
+		if self.color == :black && self.pos[0] == 0
+			true
+		elsif self.color == :red && self.pos[0] == 0
+			true
 		end
 	end
 
